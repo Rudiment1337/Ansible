@@ -51,10 +51,10 @@
     - ksc_services.stdout_lines | default([]) | length > 0
 
 # Вывод
-- name: Output reload result (KSC)
+- name: Output restart result (KSC)
   ansible.builtin.debug:
     msg: |
-      Reload {{ current_web_server }} - {{ ansible_hostname }}:
+      Restart {{ current_web_server }} - {{ ansible_hostname }}:
       - cfg test: {{ 'OK' if reinstall_service is success else 'FAILED' }}
       - status: {{ service_status.status.ActiveState | default('unknown') }}
   when: reinstall_service is defined

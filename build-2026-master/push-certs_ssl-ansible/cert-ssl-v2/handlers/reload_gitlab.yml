@@ -33,10 +33,10 @@
     - service_status.status.ActiveState | default('inactive') == 'active'
 
 # Вывод
-- name: Output reload result (GitLab)
+- name: Output restart result (GitLab)
   ansible.builtin.debug:
     msg: |
-      Reload {{ current_web_server }} (GitLab) - {{ ansible_hostname }}:
+      Restart {{ current_web_server }} (GitLab) - {{ ansible_hostname }}:
       - cfg test: {{ 'OK' if config_test is success else 'FAILED' }}
       - status: {{ service_status.status.ActiveState | default('unknown') }}
       - performed: {{ 'YES' if reload_result is changed else 'NO' }}
