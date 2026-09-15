@@ -1,0 +1,26 @@
+---
+# Проверка конфигурации
+- name: Check Nginx config inside container
+  community.docker.docker_container_exec:
+    container: "{{ ssl_docker_name }}"
+    command: nginx -t
+  register: docker_config_test
+  changed_when: false
+  ignore_errors: true
+
+# Перезапускаем службу
+- name: Reload Nginx inside docker container
+  community.docker.docker_container_exec:
+    container: "{{ ssl_docker_name }}"
+    command: nginx -s reload
+  register: docker_reload_result
+  when: docker_config_test is success
+
+# Вывод
+- name: Output reload result (Docker)
+  ansible.builtin.debug:
+    msg: |
+      Reload nginx docker - {{ ansible_hostname }} - docker name {{ ssl_docker_name }}:
+      - cfg test: {{ 'OK' if docker_config_test is success else 'FAILED' }}
+      - performed: {{ 'YES' if docker_reload_result is changed else 'NO' }}
+  when: docker_config_test is defined

@@ -1,0 +1,60 @@
+---
+# Проверка службы
+- name: Get KSC service status
+  ansible.builtin.systemd:
+    name: "{{ web_server_profiles[current_web_server].service_named }}"
+  register: service_status
+
+- name: Warn if KSC is stopped
+  ansible.builtin.debug:
+    msg: |
+      WARNING: {{ current_web_server }} is NOT running on {{ ansible_hostname }}!
+      State: {{ service_status.status.ActiveState | default('unknown') }}
+      Reload will be skipped.
+  when:
+    - service_status.status.ActiveState | default('inactive') != 'active'
+
+# Переустановка KSC
+- name: Reinstall KSC
+  ansible.builtin.command:
+    cmd: "{{ web_server_profiles[current_web_server].reinstall_cmd }}"
+  register: reinstall_service
+  changed_when: false
+    - service_status.status.ActiveState | default('inactive') == 'active'
+
+# Получение сущест KSC*
+- name: Find KSC systemd services
+  ansible.builtin.shell:
+    cmd: |
+      systemctl list-unit-files \
+        --type=service \
+        --no-legend \
+        --no-pager \
+      | awk '$1 ~ /^KSC.*\.service$/ {print $1}'
+    executable: /bin/bash
+  register: ksc_services
+  changed_when: false
+  when:
+    - reinstall_service is success
+    - service_status.status.ActiveState | default('inactive') == 'active'
+
+# Перезапускаем если переуст ок и служба была активна до переустан
+- name: Restart KSC services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    daemon_reload: true
+  loop: "{{ ksc_services.stdout_lines | default([]) }}"
+  when:
+    - reinstall_service is success
+    - ksc_services.stdout_lines | default([]) | length > 0
+
+# Вывод
+- name: Output reload result (KSC)
+  ansible.builtin.debug:
+    msg: |
+      Reload {{ current_web_server }} - {{ ansible_hostname }}:
+      - cfg test: {{ 'OK' if reinstall_service is success else 'FAILED' }}
+      - status: {{ service_status.status.ActiveState | default('unknown') }}
+      - performed: {{ 'YES' if reload_result is changed else 'NO' }}
+  when: reinstall_service is defined

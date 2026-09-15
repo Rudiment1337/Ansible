@@ -1,0 +1,9 @@
+---
+- name: Copy ssl cert
+  ansible.builtin.include_tasks:
+    file: copy_ssl.yml
+
+- name: Update ssl cert
+  ansible.builtin.include_tasks:
+    file: check_ssl.yml
+...

@@ -1,0 +1,7 @@
+---
+- name: Deploy SSL certificates
+  hosts: all
+  become: true
+  roles:
+    - role: cert-ssl-v2
+

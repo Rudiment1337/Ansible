@@ -1,0 +1,44 @@
+---
+# DOCKER
+- name: Reload Docker
+  ansible.builtin.include_tasks: reload_docker.yml
+  vars:
+    current_web_server: "{{ service_name }}"
+  listen: nginx_docker
+
+# KSC
+- name: Reload Kaspersky
+  ansible.builtin.include_tasks: reload_KSC.yml
+  vars:
+    current_web_server: "{{ service_name }}"
+  listen: KSC
+
+# GITLAB
+- name: Reload GitLab
+  ansible.builtin.include_tasks: reload_gitlab.yml
+  vars:
+    current_web_server: "{{ service_name }}"
+  listen: gitlab
+
+# SYSTEMD
+- name: Reload web - Systemd
+  ansible.builtin.include_tasks: reload_web_systemd.yml
+  vars:
+    current_web_server: "{{ service_name }}"
+  listen:
+    - nginx
+    - apache
+    - haproxy
+
+# OTHER
+- name: Reload Other
+  ansible.builtin.include_tasks: reload_other.yml
+  vars:
+    current_web_server: "{{ service_name }}"
+  listen:
+    - ords
+    - vault
+    - tomcat
+    - pdftools
+    - grafana
+...

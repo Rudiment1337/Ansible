@@ -1,0 +1,30 @@
+---
+
+# GLOVAL VAR for systemd and cmd
+
+web_server_profiles:
+  nginx:
+    service_named: nginx
+    test_cmd: "nginx -t"
+  haproxy:
+    service_named: haproxy
+    test_cmd: "haproxy -c -f /etc/haproxy/haproxy.cfg"
+  apache:
+    service_named: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' }}"
+    test_cmd: "{{ 'httpd -t' if ansible_os_family == 'RedHat' else 'apache2ctl -t' }}"
+  gitlab:
+    service_named: gitlab-runsvdir
+    test_cmd: "/opt/gitlab/embedded/sbin/nginx -t -c /var/opt/gitlab/nginx/conf/nginx.conf"
+    reload_cmd: "gitlab-ctl hup nginx"
+  tomcat:
+    service_named: tomcat
+  ords:
+    service_named: ords
+  vault:
+    service_named: vault
+  pdftools:
+    service_named: stirlingpdf
+  KSC:
+    service_named: KSCSvcWebConsole
+    # LAST CURR VERS 16.0.378
+    reinstall_cmd: "dpkg -i ksc-web-console-16.0.378.x86_64.deb"

@@ -1,0 +1,33 @@
+---
+# Проверка службы
+- name: Get "{{ current_web_server }}" service status
+  ansible.builtin.systemd:
+    name: "{{ web_server_profiles[current_web_server].service_named }}"
+  register: service_status
+
+- name: Warn if "{{ current_web_server }}" is stopped
+  ansible.builtin.debug:
+    msg: |
+      WARNING: {{ current_web_server }} is NOT running on {{ ansible_hostname }}!
+      State: {{ service_status.status.ActiveState | default('unknown') }}
+      Reload will be skipped.
+  when:
+    - service_status.status.ActiveState | default('inactive') != 'active'
+
+# Перезапускаем если служба активна
+- name: Restarted "{{ current_web_server }}" server
+  ansible.builtin.systemd:
+    name: "{{ web_server_profiles[current_web_server].service_named }}"
+    state: restarted
+  register: restarted_result
+  when:
+    - service_status.status.ActiveState | default('inactive') == 'active'
+
+# Вывод
+- name: Output restart result ("{{ current_web_server }}")
+  ansible.builtin.debug:
+    msg: |
+      Restart {{ current_web_server }} - {{ ansible_hostname }}:
+      - status: {{ service_status.status.ActiveState | default('unknown') }}
+      - performed: {{ 'YES' if restarted_result is changed else 'NO' }}
+  when: service_status is defined

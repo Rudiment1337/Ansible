@@ -1,0 +1,43 @@
+---
+# Проверка конфигурации и службы
+- name: Check web server configuration
+  ansible.builtin.command:
+    cmd: "{{ web_server_profiles[current_web_server].test_cmd }}"
+  register: config_test
+  changed_when: false
+  ignore_errors: true
+
+- name: Get web server service status
+  ansible.builtin.systemd:
+    name: "{{ web_server_profiles[current_web_server].service_named }}"
+  register: service_status
+  when: config_test is success
+
+- name: Warn if service is stopped
+  ansible.builtin.debug:
+    msg: |
+      WARNING: {{ current_web_server }} is NOT running on {{ ansible_hostname }}!
+      State: {{ service_status.status.ActiveState | default('unknown') }}
+  when:
+    - config_test is success
+    - service_status.status.ActiveState | default('inactive') != 'active'
+
+# Перезапускаем если конфиг ок и служба активна
+- name: Reload web server
+  ansible.builtin.systemd:
+    name: "{{ web_server_profiles[current_web_server].service_named }}"
+    state: reloaded
+  register: reload_result
+  when:
+    - config_test is success
+    - service_status.status.ActiveState | default('inactive') == 'active'
+
+# Вывод
+- name: Output reload result (Systemd)
+  ansible.builtin.debug:
+    msg: |
+      Reload {{ current_web_server }} - {{ ansible_hostname }}:
+      - cfg test: {{ 'OK' if config_test is success else 'FAILED' }}
+      - status: {{ service_status.status.ActiveState | default('unknown') }}
+      - performed: {{ 'YES' if reload_result is changed else 'NO' }}
+  when: config_test is defined

@@ -1,0 +1,60 @@
+---
+- name: Create ssl-cert group
+  ansible.builtin.group:
+    name: ssl-cert
+    state: present
+
+- name: Set permissions SSL private directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/ssl/private
+    state: directory
+    owner: root
+    group: ssl-cert
+    mode: '0740'
+
+- name: Copy SSL cert
+  ansible.builtin.copy:
+    src: example.local.crt
+    dest: /etc/ssl/certs/example.local.crt
+    owner: root
+    group: root
+    mode: '0644'
+  when: is_crt | default(false) | bool
+
+- name: Copy SSL private key
+  ansible.builtin.copy:
+    src: example.local.key
+    dest: /etc/ssl/private/example.local.key
+    owner: root
+    group: "ssl-cert"
+    mode: '0640'
+  when: is_crt | default(false) | bool
+
+- name: Copy ssl pem (key+full)
+  ansible.builtin.copy:
+    src: example.local.pem
+    dest: /etc/ssl/private/example.local.pem
+    owner: root
+    group: "ssl-cert"
+    mode: '0640'
+  when: is_pem | default(false) | bool
+
+- name: Copy SSL cert jks
+  ansible.builtin.copy:
+    src: example.local.jks
+    dest: /etc/ssl/certs/example.local.jks
+    owner: root
+    group: root
+    mode: '0644'
+  when: is_jks | default(false) | bool
+
+- name: Copy SSL cert pfx
+  ansible.builtin.copy:
+    src: example.local.pfx
+    dest: /etc/ssl/certs/example.local.pfx
+    owner: root
+    group: root
+    mode: '0644'
+  when: is_pfx | default(false) | bool
+...
