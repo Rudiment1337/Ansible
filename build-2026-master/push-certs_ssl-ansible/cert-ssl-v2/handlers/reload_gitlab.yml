@@ -26,7 +26,7 @@
 # Перезапускаем если конфиг ок и служба активна
 - name: Reload Gitlab server
   ansible.builtin.command:
-    cmd: "{{ web_server_profiles['current_web_server'].reload_cmd}}"
+    cmd: "{{ web_server_profiles[current_web_server].reload_cmd}}"
   register: reload_result
   when:
     - config_test is success

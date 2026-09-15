@@ -20,6 +20,7 @@
     cmd: "{{ web_server_profiles[current_web_server].reinstall_cmd }}"
   register: reinstall_service
   changed_when: false
+  when:
     - service_status.status.ActiveState | default('inactive') == 'active'
 
 # Получение сущест KSC*
@@ -56,5 +57,4 @@
       Reload {{ current_web_server }} - {{ ansible_hostname }}:
       - cfg test: {{ 'OK' if reinstall_service is success else 'FAILED' }}
       - status: {{ service_status.status.ActiveState | default('unknown') }}
-      - performed: {{ 'YES' if reload_result is changed else 'NO' }}
   when: reinstall_service is defined
